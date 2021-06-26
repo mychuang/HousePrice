@@ -52,6 +52,8 @@ dfs = []
 #  $: a~z : implies cities
 #  %: a: house trade; b: new house trade; c: rent trade
 #-----------------------------
+# test for a group (台北市)
+#
 for d in dirs:
     print("import folder: ", d)
     df = pd.read_csv(os.path.join(d,'a_lvr_land_a.csv'), index_col=False)
@@ -82,3 +84,50 @@ df = df[df['備註'].isnull()]
 # (6) change index
 df.index = pd.to_datetime((df['交易年月日'].str[:-4].astype(int) + 1911).astype(str) + \
                           df['交易年月日'].str[-4:] ,errors='coerce')
+    
+#%%
+#from matplotlib import font_manager
+from matplotlib.font_manager import *
+import numpy as np
+import matplotlib.pyplot as plt
+
+myfont = FontProperties(fname='msjh.ttc')
+
+prices = {}
+for district in set(df['鄉鎮市區']):
+    cond = (
+        (df['主要用途'] == '住家用')
+        & (df['鄉鎮市區'] == district)
+        & (df['單價元坪'] < df["單價元坪"].quantile(0.95))
+        & (df['單價元坪'] > df["單價元坪"].quantile(0.05))
+        )
+    groups = df[cond]['year']
+    
+    prices[district] = df[cond]['單價元坪'].astype(float).groupby(groups).mean().loc[2012:2020]
+    
+fig, ax = plt.subplots()
+price_history = pd.DataFrame(prices)
+price_history.plot(ax =ax)
+ax.legend(prop = myfont)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
