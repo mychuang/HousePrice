@@ -35,7 +35,7 @@ def real_estate_crawler(year, season):
 
   time.sleep(3)
 #-----------------------------------------------------
-for year in range(102, 109):
+for year in range(102, 110):
   for season in range(1,5):
     print(year, season)
     real_estate_crawler(year, season)
@@ -73,7 +73,7 @@ if '單價元/平方公尺' in df.columns:
     
 # (3) convert m^2 to level ground
 df['單價元平方公尺'] = df['單價元平方公尺'].astype(float)
-df['單價元坪'] = df['單價元平方公尺'] * 3.30579
+df['單價元坪'] = (df['單價元平方公尺'] * 3.30579) / 10000.0
 
 # (4) type of building
 df['建物型態2'] = df['建物型態'].str.split('(').str[0]
@@ -86,29 +86,34 @@ df.index = pd.to_datetime((df['交易年月日'].str[:-4].astype(int) + 1911).as
                           df['交易年月日'].str[-4:] ,errors='coerce')
     
 #%%
-#from matplotlib import font_manager
-from matplotlib.font_manager import *
-import numpy as np
-import matplotlib.pyplot as plt
-
-myfont = FontProperties(fname='msjh.ttc')
-
+# get the annul price in different zone
+#
 prices = {}
 for district in set(df['鄉鎮市區']):
-    cond = (
+    condition = (
         (df['主要用途'] == '住家用')
         & (df['鄉鎮市區'] == district)
         & (df['單價元坪'] < df["單價元坪"].quantile(0.95))
         & (df['單價元坪'] > df["單價元坪"].quantile(0.05))
         )
-    groups = df[cond]['year']
-    
-    prices[district] = df[cond]['單價元坪'].astype(float).groupby(groups).mean().loc[2012:2020]
-    
-fig, ax = plt.subplots()
+    groups = df[condition]['year']
+    prices[district] = df[condition]['單價元坪'].astype(float).groupby(groups).mean().loc[2012:2020]
 price_history = pd.DataFrame(prices)
-price_history.plot(ax =ax)
-ax.legend(prop = myfont)
+
+from matplotlib.font_manager import *
+import numpy as np
+import matplotlib.pyplot as plt
+
+myfont = FontProperties(fname='msjh.ttc', size = 6)   
+fig, ax = plt.subplots(1,2)
+
+price_history.plot(ax = ax[0])
+ax[0].legend(prop = myfont, loc='upper left')
+
+#plot the annul average price
+#
+price_history.mean(axis=1).plot(ax = ax[1])
+
 
 
 
