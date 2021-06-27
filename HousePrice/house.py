@@ -5,10 +5,8 @@ Created on Mon Jun 14 15:22:09 2021
 @author: Miller
 """
 import requests
-import os
 import zipfile
 import time
-import pandas as pd
 
 #%%
 def real_estate_crawler(year, season):
@@ -44,6 +42,8 @@ real_estate_crawler(110, 1)
 
 #%%
 # import folders
+import pandas as pd
+import os
 dirs = [d for d in os.listdir() if d[:4] == 'real']
 dfs = []
 
